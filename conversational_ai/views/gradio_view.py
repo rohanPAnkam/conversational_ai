@@ -50,7 +50,7 @@ async def chat_with_ai(message: str, history: List[Dict], provider: str, model: 
                 "http://localhost:8000/chat",
                 json={
                     "messages": messages,
-                    "provider": provider.lower(),
+                    "provider": provider.lower(),  # Ensure provider is lowercase
                     "model": model,
                     "stream": True
                 },
@@ -90,7 +90,7 @@ def create_gradio_interface():
                 value="OpenAI"
             )
             model = gr.Dropdown(
-                choices=["gpt-4", "llama-13b", "gemini-pro"],
+                choices=["gpt-4", "llama-13b", "gemini-2.0-flash"],
                 label="Model",
                 value="gpt-4"
             )

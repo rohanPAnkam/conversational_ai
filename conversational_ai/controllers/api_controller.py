@@ -53,13 +53,18 @@ async def health_check():
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     llm_service = LLMService(app.state.llm_config)
-    provider_map = {"openai": "OPENAI", "llama": "LLAMA", "gemini": "GEMINI"}
-    provider = getattr(LLMProvider, provider_map.get(request.provider.upper(), "OPENAI"))
+    provider_map = {
+        "openai": LLMProvider.OPENAI,
+        "llama": LLMProvider.LLAMA,
+        "gemini": LLMProvider.GEMINI
+    }
+    # Use the provider map to get the correct LLMProvider enum value
+    provider = provider_map.get(request.provider.lower(), LLMProvider.OPENAI)
+    logger.info(f"Selected provider: {provider}, model: {request.model}")
 
     if request.stream:
         async def stream_response():
-            # Await the generate_response coroutine to get the async iterator
-            async for chunk in await llm_service.generate_response(
+            async for chunk in llm_service.generate_response(
                 request.messages, provider, request.model, request.stream
             ):
                 yield chunk
@@ -70,8 +75,7 @@ async def chat(request: ChatRequest):
         )
     
     response_content = ""
-    # Await the generate_response coroutine to get the async iterator
-    async for chunk in await llm_service.generate_response(
+    async for chunk in llm_service.generate_response(
         request.messages, provider, request.model, request.stream
     ):
         response_content += chunk
