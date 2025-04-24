@@ -6,10 +6,10 @@ import httpx
 import json
 from conversational_ai.models.llm_config import LLMConfig, LLMProvider
 import anthropic
-# Load environment variables from .env file
+
 load_dotenv()
 
-# Configure logging
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -50,13 +50,11 @@ class LLMService:
                 yield chunk
     
     async def _openai_generate(self, messages: List[Dict], model: str, stream: bool):
-        # Correct OpenAI API endpoint for chat completions
         api_url = "https://api.openai.com/v1/chat/completions"
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.openai_api_key}"
         }
-        # Use the full messages list for chat completions
         payload = {
             "model": model,
             "messages": messages,
@@ -70,7 +68,6 @@ class LLMService:
                 response.raise_for_status()
                 logger.info(f"Received response: {response.text}")
                 if stream:
-                    # Handle streaming response (chunked data)
                     async for chunk in response.aiter_text():
                         if chunk.strip():
                             data = json.loads(chunk)
@@ -97,8 +94,6 @@ class LLMService:
                 yield f"Error: Unexpected error - {str(e)}"
     
     async def _anthropic_generate(self, messages: List[Dict], model: str, stream: bool):
-        # Anthropic API does not natively support streaming via async iteration
-        # We'll simulate streaming by splitting the response
         try:
             logger.info(f"Generating response with Anthropic model: {model}")
             # Extract the last user message as the prompt
@@ -107,7 +102,7 @@ class LLMService:
                 model=model,
                 max_tokens=1000,
                 temperature=1,
-                system="You are a world-class poet. Respond only with short poems.",
+                system="You are a helpful assistant.",
                 messages=[
                     {
                         "role": "user",
@@ -123,7 +118,6 @@ class LLMService:
             logger.info(f"Received response from Anthropic: {response.content}")
             full_response = response.content[0].text if response.content and isinstance(response.content, list) else ""
             if stream:
-                # Simulate streaming by splitting into lines
                 chunks = full_response.split("\n")
                 for chunk in chunks:
                     if chunk.strip():
@@ -136,24 +130,22 @@ class LLMService:
             yield f"Error: Unexpected error - {str(e)}"
     
     async def _gemini_generate(self, messages: List[Dict], model: str, stream: bool):
-        # Correct Gemini API endpoint
+        # Gemini API endpoint
         api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self.gemini_api_key}"
         headers = {
             "Content-Type": "application/json"
         }
-        # Convert messages to a format suitable for the Gemini API
         payload = {
             "contents": [{"parts": [{"text": message["content"]} for message in messages]}]
         }
         
-        async with httpx.AsyncClient(timeout=10.0) as client:  # Increased timeout to 10 seconds
+        async with httpx.AsyncClient(timeout=10.0) as client:
             try:
                 logger.info(f"Sending request to {api_url} with payload: {json.dumps(payload)}")
                 response = await client.post(api_url, json=payload, headers=headers)
                 response.raise_for_status()
                 logger.info(f"Received response: {response.text}")
                 if stream:
-                    # Simulate streaming by splitting the response into chunks
                     data = response.json()
                     full_response = data["candidates"][0]["content"]["parts"][0]["text"]
                     chunks = full_response.split("\n")

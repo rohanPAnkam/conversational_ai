@@ -5,13 +5,11 @@ import time
 import logging
 import multiprocessing
 
-# Add the parent directory to sys.path to resolve absolute imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from conversational_ai.controllers.api_controller import app
 from conversational_ai.views.gradio_view import create_gradio_interface
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -38,7 +36,6 @@ def run_gradio():
             logger.error("Gradio interface creation failed. Exiting...")
             return
         
-        # Check for port availability and use a fallback if needed
         port = 7860
         max_attempts = 5
         for attempt in range(max_attempts):
@@ -48,7 +45,7 @@ def run_gradio():
                     server_name="0.0.0.0",
                     server_port=port,
                     share=False,
-                    debug=True,  # Enable debug mode for more verbose output
+                    debug=True,
                     prevent_thread_lock=True
                 )
                 logger.info(f"Gradio interface started successfully on port {port}")
@@ -64,18 +61,14 @@ def run_gradio():
         raise
 
 if __name__ == "__main__":
-    # Start FastAPI server in a separate process
     fastapi_process = multiprocessing.Process(target=run_fastapi)
     fastapi_process.start()
     
-    # Wait a few seconds to ensure FastAPI server is up
     logger.info("Waiting for FastAPI server to start...")
     time.sleep(5)
     
-    # Start Gradio interface in the main process
     run_gradio()
     
-    # Keep the script running until interrupted
     try:
         fastapi_process.join()
     except KeyboardInterrupt:

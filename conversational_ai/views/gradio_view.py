@@ -5,7 +5,6 @@ import httpx
 from typing import List, Dict
 from conversational_ai.models.llm_config import LLMProvider
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -39,7 +38,6 @@ async def chat_with_ai(message: str, history: List[Dict], provider: str, model: 
         "Gemini": LLMProvider.GEMINI
     }
     
-    # Create a new list with the existing history and the new user message
     messages = history + [{"role": "user", "content": message}]
 
     logger.info(f"Sending chat request to FastAPI with provider: {provider}, model: {model}")
@@ -50,7 +48,7 @@ async def chat_with_ai(message: str, history: List[Dict], provider: str, model: 
                 "http://localhost:8000/chat",
                 json={
                     "messages": messages,
-                    "provider": provider.lower(),  # Ensure provider is lowercase
+                    "provider": provider.lower(),
                     "model": model,
                     "stream": True
                 },
@@ -62,7 +60,7 @@ async def chat_with_ai(message: str, history: List[Dict], provider: str, model: 
                 async for line in response.aiter_text():
                     content += line
                 logger.info(f"Received response: {content}")
-                # Append the assistant response to the history
+    
                 updated_history = messages + [{"role": "assistant", "content": content}]
                 return updated_history
             else:
@@ -75,7 +73,6 @@ async def chat_with_ai(message: str, history: List[Dict], provider: str, model: 
             return updated_history
 
 def create_gradio_interface():
-    # Check if FastAPI server is running before launching Gradio
     if not asyncio.run(check_fastapi_health()):
         logger.error("Cannot start Gradio interface: FastAPI server is not responding.")
         return None
