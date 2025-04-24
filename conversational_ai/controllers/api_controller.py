@@ -55,7 +55,7 @@ async def chat(request: ChatRequest):
     llm_service = LLMService(app.state.llm_config)
     provider_map = {
         "openai": LLMProvider.OPENAI,
-        "llama": LLMProvider.LLAMA,
+        "anthropic": LLMProvider.ANTHROPIC,
         "gemini": LLMProvider.GEMINI
     }
     # Use the provider map to get the correct LLMProvider enum value

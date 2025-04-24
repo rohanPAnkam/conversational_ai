@@ -35,7 +35,7 @@ async def check_fastapi_health():
 async def chat_with_ai(message: str, history: List[Dict], provider: str, model: str):
     provider_map = {
         "OpenAI": LLMProvider.OPENAI,
-        "LLaMA": LLMProvider.LLAMA,
+        "Anthropic": LLMProvider.ANTHROPIC,
         "Gemini": LLMProvider.GEMINI
     }
     
@@ -85,12 +85,12 @@ def create_gradio_interface():
         
         with gr.Row():
             provider = gr.Dropdown(
-                choices=["OpenAI", "LLaMA", "Gemini"],
+                choices=["OpenAI", "Anthropic", "Gemini"],
                 label="LLM Provider",
                 value="OpenAI"
             )
             model = gr.Dropdown(
-                choices=["gpt-4", "llama-13b", "gemini-2.0-flash"],
+                choices=["gpt-4", "claude-3-7-sonnet-20250219", "gemini-2.0-flash"],
                 label="Model",
                 value="gpt-4"
             )
